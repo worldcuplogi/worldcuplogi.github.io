@@ -154,7 +154,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
   </div>
 
   <div class="card">
-    <h2>🏆 The Podium <span class="badge">BASE 100 PTS · UP TO ×3</span></h2>
+    <h2>🏆 The Podium <span class="badge">BASE 100 PTS · MULTIPLIERS UP TO ×7.3</span></h2>
     <div class="hint">Pick the champion, runner-up and third place. <b>Underdog bonus:</b> every team carries its own multiplier derived from real bookmaker odds at kickoff — from ×1.0 (Spain, the favorite) up to ×7.3 (Curaçao or Haiti, 2500-1). A correct Spain champion pick pays 50 pts; a correct Curaçao pick pays 365. A podium team in the wrong spot still earns 10 pts × its multiplier.</div>
     <div class="podium-row">
       <div class="podium-slot s1"><span class="medal">🥇</span><div class="pts">Champion · 50 pts × team multiplier</div><label>Winner</label><select id="f-p1"></select></div>
@@ -202,13 +202,10 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
   </div>
 
   <div style="text-align:center">
-    <button class="btn" onclick="makeCode()">🎟️ Generate My Prediction Code</button>
+    <button class="btn" id="submit-btn" onclick="submitEntry()">🎟️ Submit My Predictions</button>
     <div class="error" id="f-error"></div>
-    <div id="code-out" style="display:none">
-      <div class="codebox" id="code-text"></div>
-      <p style="margin:12px 0;color:var(--muted);font-size:.88rem">
-        📤 <b>Copy this code and send it to the organizer</b> (Slack / Teams / email) before kickoff.<br>One entry per person — your latest code counts.</p>
-      <button class="btn ghost small" onclick="copyCode()">📋 Copy code</button>
+    <div id="submit-ok" style="display:none">
+      <div class="codebox">✅ Your predictions are in — see you on the leaderboard!<br>Need to change something? Submit again with the same name before kickoff and your picks are updated.</div>
     </div>
   </div>
 </div>
@@ -240,7 +237,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
     <p style="margin-top:14px;font-size:.88rem;color:var(--muted)">
       <b>Tie-breakers:</b> 1) closest total-goals guess, 2) earliest submission.<br>
       <b>Deadline:</b> entries close at kickoff of the opening match (June 11, 2026).<br>
-      <b>One entry per person</b> — if you submit twice, only your most recent code is kept.</p>
+      <b>One entry per person</b> — submitting again with the same name simply updates your picks.</p>
   </div>
 </div>
 
@@ -255,15 +252,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
     <button class="btn small" onclick="tryAdmin()">Unlock</button>
   </div>
   <div id="adm-content" style="display:none">
-  <div class="note">🔒 <b>Organizer area.</b> Changes are kept in this browser automatically. To publish the leaderboard to everyone, click <b>Download updated page</b> and share the new file (it replaces this one).</div>
-
-  <div class="card">
-    <h2>📥 Import prediction codes</h2>
-    <div class="hint">Paste one or more codes (any separator). Re-submitting a name replaces the previous entry.</div>
-    <textarea id="adm-codes" placeholder="WC26-eyJ..."></textarea>
-    <div style="margin-top:10px"><button class="btn small" onclick="importCodes()">Import</button>
-    <span id="adm-import-msg" style="font-size:.85rem;margin-left:10px"></span></div>
-  </div>
+  <div class="note">🔒 <b>Organizer area.</b> Entries arrive here automatically when people submit. Fill in results as the tournament progresses and hit <b>Save results</b> — the leaderboard updates instantly for everyone.</div>
 
   <div class="card">
     <h2>📝 Enter actual results</h2>
@@ -296,17 +285,11 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
     <div id="adm-entries" style="font-size:.85rem"></div>
   </div>
 
-  <div class="card" style="text-align:center">
-    <button class="btn" onclick="exportPage()">⬇️ Download updated page</button>
-    <div class="hint" style="margin-top:10px">Creates a copy of this page with all entries & results baked in — replace <b>index.html</b> in your GitHub repo with it so everyone sees the live leaderboard.</div>
-  </div>
   </div><!-- /adm-content -->
 </div>
 
 </div>
 <footer>⚽ World Cup 2026 Logifuture Prediction Game · Good luck! 🍀</footer>
-
-<script id="GAME_DATA" type="application/json">{"entries":[],"results":{}}</script>
 
 <script>
 /* ================= DATA ================= */
@@ -348,33 +331,38 @@ async function tryGate(){
   } else document.getElementById("gate-err").style.display = "block";
 }
 async function tryAdmin(){
-  if(await sha256(document.getElementById("adm-pw").value) === HASH_ADMIN){
-    sessionStorage.setItem("wc26adm","1");
+  const pw = document.getElementById("adm-pw").value;
+  if(await sha256(pw) === HASH_ADMIN){
+    ADMPW = pw; // kept in memory to sign result updates
     showAdmin();
   } else document.getElementById("adm-err").style.display = "block";
 }
-function adminUnlocked(){ return sessionStorage.getItem("wc26adm")==="1"; }
+function adminUnlocked(){ return ADMPW !== ""; }
 function showAdmin(){
   document.getElementById("adm-lock").style.display = "none";
   document.getElementById("adm-content").style.display = "block";
   renderAdmin();
+  fetchData().then(renderAdmin);
 }
 if(sessionStorage.getItem("wc26gate")==="1") document.getElementById("gate").style.display = "none";
 document.getElementById("gate-pw").addEventListener("keydown", e=>{ if(e.key==="Enter") tryGate(); });
 document.getElementById("adm-pw").addEventListener("keydown", e=>{ if(e.key==="Enter") tryAdmin(); });
-const LSKEY = "wc26game";
 
-let DB = loadData();
-function loadData(){
-  try{ const ls = localStorage.getItem(LSKEY); if(ls) return JSON.parse(ls); }catch(e){}
-  try{ return JSON.parse(document.getElementById("GAME_DATA").textContent); }catch(e){ return {entries:[],results:{}}; }
+/* ===== LIVE BACKEND (Google Apps Script web app) ===== */
+const API_URL = "https://script.google.com/macros/s/AKfycbxwZh-XDYrdsul4PiCeeaYdj2oynfXBZR_QRP0mayR42to8Pk2_fM3k_bikU45Y0R2P/exec";
+let DB = {entries:[], results:{}};
+let ADMPW = ""; // admin password kept in memory after unlock (needed to sign result updates)
+async function fetchData(){
+  try{
+    const r = await fetch(API_URL);
+    const d = await r.json();
+    if(d && d.entries) DB = {entries:d.entries, results:d.results||{}};
+  }catch(e){ console.warn("fetchData failed", e); }
 }
-// If the embedded file has more entries than this browser's cache, prefer the file.
-(function(){ try{
-  const file = JSON.parse(document.getElementById("GAME_DATA").textContent);
-  if((file.entries||[]).length > (DB.entries||[]).length) DB = file;
-}catch(e){} })();
-function persist(){ try{ localStorage.setItem(LSKEY, JSON.stringify(DB)); }catch(e){} }
+async function apiPost(payload){
+  const r = await fetch(API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload)});
+  return r.json();
+}
 
 /* ================= UI SETUP ================= */
 function fillTeamSelect(sel, blankLabel, showMult){
@@ -389,7 +377,7 @@ document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click",()=>
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
   document.getElementById("panel-"+b.dataset.tab).classList.add("active");
-  if(b.dataset.tab==="board") renderBoard();
+  if(b.dataset.tab==="board"){ renderBoard(); fetchData().then(renderBoard); }
   if(b.dataset.tab==="admin"){ if(adminUnlocked()) showAdmin(); }
 }));
 
@@ -404,12 +392,10 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-/* ================= ENTRY CODE ================= */
-function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+/* ================= SUBMIT ENTRY ================= */
 function radio(name){ const r=document.querySelector(`input[name="${name}"]:checked`); return r?r.value:""; }
 
-function makeCode(){
+async function submitEntry(){
   const err = document.getElementById("f-error");
   const name = document.getElementById("f-name").value.trim();
   const p1=document.getElementById("f-p1").value, p2=document.getElementById("f-p2").value, p3=document.getElementById("f-p3").value;
@@ -417,65 +403,60 @@ function makeCode(){
   const boot = document.getElementById("f-boot").value.trim();
   const e1=radio("e1"), e2=radio("e2"), e3=radio("e3");
   let msg = "";
-  if(!name) msg="Please enter your name.";
+  if(new Date() > KICKOFF) msg="Entries are closed — the tournament has kicked off!";
+  else if(!name) msg="Please enter your name.";
   else if(!p1||!p2||!p3) msg="Please pick all three podium teams.";
   else if(new Set([p1,p2,p3]).size<3) msg="Podium teams must be three different teams.";
   else if(goals===""||+goals<0) msg="Please enter total goals.";
   else if(!boot) msg="Please pick a Golden Boot player.";
   else if(!e1||!e2||!e3) msg="Please answer all three bonus calls.";
-  if(msg){ err.textContent="⚠️ "+msg; err.style.display="block"; document.getElementById("code-out").style.display="none"; return; }
+  if(msg){ err.textContent="⚠️ "+msg; err.style.display="block"; document.getElementById("submit-ok").style.display="none"; return; }
   err.style.display="none";
   const entry = {n:name, d:document.getElementById("f-dept").value.trim(), p1,p2,p3, g:+goals, b:boot, e1,e2,e3, t:Date.now()};
-  const code = "WC26-"+b64e(JSON.stringify(entry));
-  document.getElementById("code-text").textContent = code;
-  document.getElementById("code-out").style.display = "block";
-  document.getElementById("code-out").scrollIntoView({behavior:"smooth",block:"center"});
-}
-function copyCode(){
-  navigator.clipboard.writeText(document.getElementById("code-text").textContent)
-    .then(()=>alert("Code copied! Now send it to the organizer."));
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true; btn.textContent = "Sending…";
+  try{
+    const res = await apiPost({type:"entry", entry});
+    if(!res || !res.ok) throw 0;
+    document.getElementById("submit-ok").style.display = "block";
+    document.getElementById("submit-ok").scrollIntoView({behavior:"smooth",block:"center"});
+  }catch(e){
+    err.textContent = "⚠️ Couldn't reach the server — check your connection and try again.";
+    err.style.display = "block";
+  }
+  btn.disabled = false; btn.textContent = "🎟️ Submit My Predictions";
 }
 
 /* ================= ADMIN ================= */
-function importCodes(){
-  const raw = document.getElementById("adm-codes").value;
-  const found = raw.match(/WC26-[A-Za-z0-9+/=]+/g) || [];
-  let ok=0, bad=0;
-  found.forEach(c=>{
-    try{
-      const e = JSON.parse(b64d(c.slice(5)));
-      if(!e.n||!e.p1||!e.p2||!e.p3) throw 0;
-      const i = DB.entries.findIndex(x=>x.n.toLowerCase()===e.n.toLowerCase());
-      if(i>=0) DB.entries[i]=e; else DB.entries.push(e);
-      ok++;
-    }catch(_){ bad++; }
-  });
-  persist();
-  document.getElementById("adm-import-msg").innerHTML =
-    `<span class="ok">✓ ${ok} imported</span>` + (bad?` · <span style="color:var(--red)">${bad} invalid</span>`:"");
-  if(ok) document.getElementById("adm-codes").value="";
-  renderAdmin();
-}
 function pickedTeams(){
   const set = new Set();
   DB.entries.forEach(e=>[e.p1,e.p2,e.p3].forEach(t=>t&&set.add(t)));
   return TEAMS.filter(t=>set.has(t[0])).map(t=>t[0]);
 }
-function saveResults(){
+async function saveResults(){
   const prog = {};
   pickedTeams().forEach(tc=>{
     const el = document.getElementById("prog-"+tc);
     if(el && el.value) prog[tc]=el.value;
   });
-  DB.results = {
+  const results = {
     p1:document.getElementById("r-p1").value, p2:document.getElementById("r-p2").value, p3:document.getElementById("r-p3").value,
     g:document.getElementById("r-goals").value===""?null:+document.getElementById("r-goals").value,
     b:document.getElementById("r-boot").value.trim(),
     e1:document.getElementById("r-e1").value, e2:document.getElementById("r-e2").value, e3:document.getElementById("r-e3").value,
     prog
   };
-  persist();
-  document.getElementById("adm-res-msg").innerHTML = `<span class="ok">✓ Saved — leaderboard updated</span>`;
+  const msg = document.getElementById("adm-res-msg");
+  msg.textContent = "Saving…";
+  try{
+    const auth = await sha256(ADMPW + "|logi26salt");
+    const res = await apiPost({type:"results", auth, results});
+    if(!res || !res.ok) throw 0;
+    DB.results = results;
+    msg.innerHTML = `<span class="ok">✓ Saved — leaderboard updated for everyone</span>`;
+  }catch(e){
+    msg.innerHTML = `<span style="color:var(--red)">⚠️ Save failed — check connection and try again</span>`;
+  }
 }
 function renderAdmin(){
   const r = DB.results||{};
@@ -496,23 +477,6 @@ function renderAdmin(){
         <span class="ko">${TEAM[e.p1]?TEAM[e.p1][2]:""} ${TEAM[e.p1]?TEAM[e.p1][1]:e.p1} · ${e.g} goals · ${esc(e.b)}</span></div>`).join("")
     : `<div class="empty">No entries yet — paste codes above.</div>`;
 }
-function exportPage(){
-  const dataEl = document.getElementById("GAME_DATA");
-  dataEl.textContent = JSON.stringify(DB);
-  /* serialize in locked state so the published copy asks for passwords again */
-  const gate=document.getElementById("gate"), lock=document.getElementById("adm-lock"), cont=document.getElementById("adm-content");
-  const prev=[gate.style.display, lock.style.display, cont.style.display];
-  gate.style.display=""; lock.style.display=""; cont.style.display="none";
-  document.getElementById("gate-err").style.display=""; document.getElementById("adm-err").style.display="";
-  const html = "<!DOCTYPE html>\n"+document.documentElement.outerHTML;
-  gate.style.display=prev[0]; lock.style.display=prev[1]; cont.style.display=prev[2]; // restore
-  const blob = new Blob([html],{type:"text/html"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "index.html";
-  a.click();
-}
-
 /* ================= SCORING ================= */
 function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z ]/g,"").trim(); }
 function scoreEntry(e, r){
@@ -605,6 +569,8 @@ function renderBoard(){
     list.querySelectorAll(".lb-bar i").forEach(b=>b.style.width=b.dataset.w+"%");
   }));
 }
+
+fetchData().then(renderBoard); // warm the leaderboard on load
 </script>
 </body>
 </html>
