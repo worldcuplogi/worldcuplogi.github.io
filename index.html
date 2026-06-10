@@ -149,7 +149,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
     <div class="hint">Use your real name so colleagues can find you on the leaderboard.</div>
     <div class="grid2">
       <div><label>Name</label><input id="f-name" placeholder="e.g. Vinz Rocco" maxlength="40"></div>
-      <div><label>Team / Department (optional)</label><input id="f-dept" placeholder="e.g. Finance" maxlength="30"></div>
+      <div><label>Team Name (optional)</label><input id="f-dept" placeholder="e.g. Marketing" maxlength="30"></div>
     </div>
   </div>
 
@@ -541,15 +541,20 @@ function renderBoard(){
       || (r.g!=null ? Math.abs(a.e.g-r.g)-Math.abs(b.e.g-r.g) : 0)
       || a.e.t-b.e.t);
   const anyResult = !!(r.p1||r.p2||r.p3||r.g!=null||r.b||r.e1||r.e2||r.e3||Object.keys(r.prog||{}).length);
-  const favCount = {};
-  DB.entries.forEach(e=>[e.p1,e.p2,e.p3].forEach(t=>{ if(t) favCount[t]=(favCount[t]||0)+1; }));
-  const fav = Object.entries(favCount).sort((a,b)=>b[1]-a[1])[0];
-  const avgG = Math.round(DB.entries.reduce((s,e)=>s+e.g,0)/DB.entries.length);
-  stats.innerHTML = `
-    <div class="stat"><div class="v">${DB.entries.length}</div><div class="k">Players</div></div>
-    <div class="stat"><div class="v">${TEAM[fav[0]]?TEAM[fav[0]][2]:""} ${TEAM[fav[0]]?TEAM[fav[0]][1]:fav[0]}</div><div class="k">Crowd favourite (${fav[1]} picks)</div></div>
-    <div class="stat"><div class="v">${avgG}</div><div class="k">Avg goals guessed</div></div>
-    <div class="stat"><div class="v">${anyResult? scored[0].s.total+" pts" : "—"}</div><div class="k">Top score</div></div>`;
+  /* hide aggregate stats until at least 3 entries, so they can't reveal an early entrant's picks */
+  if(DB.entries.length < 3){
+    stats.innerHTML = `<div class="stat" style="flex:1"><div class="v">${DB.entries.length}</div><div class="k">Player${DB.entries.length===1?"":"s"} so far · stats unlock at 3 entries</div></div>`;
+  } else {
+    const favCount = {};
+    DB.entries.forEach(e=>[e.p1,e.p2,e.p3].forEach(t=>{ if(t) favCount[t]=(favCount[t]||0)+1; }));
+    const fav = Object.entries(favCount).sort((a,b)=>b[1]-a[1])[0];
+    const avgG = Math.round(DB.entries.reduce((s,e)=>s+e.g,0)/DB.entries.length);
+    stats.innerHTML = `
+      <div class="stat"><div class="v">${DB.entries.length}</div><div class="k">Players</div></div>
+      <div class="stat"><div class="v">${TEAM[fav[0]]?TEAM[fav[0]][2]:""} ${TEAM[fav[0]]?TEAM[fav[0]][1]:fav[0]}</div><div class="k">Crowd favourite (${fav[1]} picks)</div></div>
+      <div class="stat"><div class="v">${avgG}</div><div class="k">Avg goals guessed</div></div>
+      <div class="stat"><div class="v">${anyResult? scored[0].s.total+" pts" : "—"}</div><div class="k">Top score</div></div>`;
+  }
   if(anyResult && scored.length>=3){
     const [g,s2,b] = scored;
     pod.innerHTML = `
@@ -558,11 +563,13 @@ function renderBoard(){
       <div class="lb-pod pod-3"><div class="med">🥉</div><div class="nm">${esc(b.e.n)}</div><div class="pt">${b.s.total}</div></div>`;
   } else pod.innerHTML = "";
   const max = Math.max(1, scored[0].s.total);
-  list.innerHTML = (anyResult?"":`<div class="note">⏳ No results entered yet — everyone is at 0. Picks are shown below; scoring starts once the tournament delivers verdicts.</div>`) +
+  list.innerHTML = (anyResult?"":`<div class="note">⏳ Entries are open — everyone's at 0 until the tournament starts. Picks stay hidden until kickoff, so nobody can copy each other.</div>`) +
     scored.map((x,i)=>{
-      const detail = x.s.items.map(([label,pts,info])=>
-        `<div class="li"><span>${label} <span class="ko">— ${esc(String(info))}</span></span>
-         <b class="${pts>0?'ok':'ko'}">${pts==null?"…":"+"+pts}</b></div>`).join("");
+      const detail = anyResult
+        ? x.s.items.map(([label,pts,info])=>
+            `<div class="li"><span>${label} <span class="ko">— ${esc(String(info))}</span></span>
+             <b class="${pts>0?'ok':'ko'}">${pts==null?"…":"+"+pts}</b></div>`).join("")
+        : `<div class="li"><span class="ko">🔒 Picks are hidden until the tournament kicks off.</span></div>`;
       return `<div class="lb-row" onclick="this.nextElementSibling.classList.toggle('open')">
         <div class="lb-rank">${i<3&&anyResult?["🥇","🥈","🥉"][i]:i+1}</div>
         <div class="lb-name">${esc(x.e.n)}${x.e.d?` <span class="ko" style="font-weight:400;font-size:.78rem">· ${esc(x.e.d)}</span>`:""}</div>
