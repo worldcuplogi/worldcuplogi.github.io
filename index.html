@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 — Logifuture Prediction Game</title>
+<style>
+:root{
+  --pitch:#0b3d20; --pitch2:#0e5c2f; --line:rgba(255,255,255,.12);
+  --gold:#f5c542; --silver:#c9ced6; --bronze:#cd8a4b;
+  --card:#ffffff; --ink:#15241b; --muted:#5d7064; --accent:#1a9e55; --accent2:#0e7a3f;
+  --red:#d64545; --bg:#f2f6f1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+/* HERO */
+.hero{background:
+  radial-gradient(ellipse at 20% -20%, rgba(245,197,66,.25), transparent 50%),
+  repeating-linear-gradient(90deg, var(--pitch) 0 70px, var(--pitch2) 70px 140px);
+  color:#fff;padding:34px 20px 86px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:340px;height:340px;border:2px solid var(--line);border-radius:50%;pointer-events:none}
+.hero::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line)}
+.hero h1{font-size:clamp(1.5rem,4vw,2.4rem);letter-spacing:.5px;position:relative;z-index:1}
+.hero .sub{opacity:.85;margin-top:6px;position:relative;z-index:1}
+.hero .trophy{font-size:2.6rem;display:block;margin-bottom:6px;position:relative;z-index:1;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+#countdown{position:relative;z-index:1;margin-top:14px;display:inline-flex;gap:10px}
+#countdown .unit{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:64px}
+#countdown .num{font-size:1.4rem;font-weight:700;color:var(--gold)}
+#countdown .lab{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;opacity:.8}
+/* TABS */
+.tabs{display:flex;justify-content:center;gap:8px;margin:-58px auto 0;position:relative;z-index:2;flex-wrap:wrap;padding:0 12px}
+.tab-btn{border:none;cursor:pointer;padding:13px 22px;border-radius:14px 14px 0 0;font-size:.95rem;font-weight:600;
+  background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(4px);transition:.2s}
+.tab-btn:hover{background:rgba(255,255,255,.32)}
+.tab-btn.active{background:var(--bg);color:var(--ink)}
+.wrap{max-width:880px;margin:0 auto;padding:26px 16px 70px}
+.panel{display:none;animation:fade .35s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:16px;box-shadow:0 6px 24px rgba(11,61,32,.10);padding:24px;margin-bottom:18px}
+.card h2{font-size:1.15rem;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card .hint{color:var(--muted);font-size:.86rem;margin-bottom:16px}
+.badge{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;font-size:.7rem;font-weight:700;
+  padding:3px 10px;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:6px}
+input,select{width:100%;padding:11px 12px;border:1.5px solid #d7e0d9;border-radius:10px;font-size:.95rem;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,158,85,.15)}
+.podium-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.podium-row{grid-template-columns:1fr}}
+.podium-slot{border-radius:14px;padding:14px;border:2px solid transparent}
+.podium-slot.s1{background:linear-gradient(180deg,#fff7df,#fff);border-color:var(--gold)}
+.podium-slot.s2{background:linear-gradient(180deg,#f3f5f8,#fff);border-color:var(--silver)}
+.podium-slot.s3{background:linear-gradient(180deg,#f9eee2,#fff);border-color:var(--bronze)}
+.podium-slot .medal{font-size:1.5rem}
+.podium-slot label{margin-top:4px}
+.pts{font-size:.7rem;color:var(--muted);font-weight:600}
+.seg{display:flex;gap:8px}
+.seg input{display:none}
+.seg span{flex:1;text-align:center;padding:10px;border:1.5px solid #d7e0d9;border-radius:10px;cursor:pointer;font-weight:600;font-size:.9rem;transition:.15s;display:block}
+.seg input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{display:inline-block;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-size:1rem;font-weight:700;padding:14px 28px;border-radius:12px;box-shadow:0 4px 14px rgba(26,158,85,.35);transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(26,158,85,.45)}
+.btn.ghost{background:#fff;color:var(--accent2);border:1.5px solid var(--accent);box-shadow:none}
+.btn.small{padding:9px 16px;font-size:.85rem}
+textarea{width:100%;min-height:110px;padding:12px;border:1.5px solid #d7e0d9;border-radius:10px;font-family:monospace;font-size:.8rem}
+.codebox{background:#10271a;color:#9be8b8;border-radius:12px;padding:16px;font-family:monospace;font-size:.82rem;word-break:break-all;margin-top:14px;position:relative}
+.error{color:var(--red);font-size:.85rem;font-weight:600;margin-top:10px;display:none}
+/* LEADERBOARD */
+.lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin:10px 0 26px}
+.lb-pod{text-align:center;border-radius:14px 14px 0 0;padding:14px 10px 10px;color:#fff;width:30%;max-width:180px;position:relative}
+.lb-pod .nm{font-weight:700;font-size:.95rem;word-break:break-word}
+.lb-pod .pt{font-size:1.3rem;font-weight:800;color:#fff}
+.lb-pod .med{font-size:1.7rem}
+.pod-1{background:linear-gradient(180deg,#e8b633,#b8860b);height:150px;order:2}
+.pod-2{background:linear-gradient(180deg,#aab4bf,#7d8893);height:118px;order:1}
+.pod-3{background:linear-gradient(180deg,#c98a52,#9c5f2e);height:96px;order:3}
+.lb-row{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:8px;
+  box-shadow:0 2px 8px rgba(11,61,32,.07);cursor:pointer;transition:.15s}
+.lb-row:hover{transform:translateX(3px)}
+.lb-rank{font-weight:800;width:34px;text-align:center;color:var(--muted)}
+.lb-name{flex:1;font-weight:600;min-width:90px}
+.lb-bar{flex:2;height:10px;background:#e7eee8;border-radius:99px;overflow:hidden}
+.lb-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--gold));
+  width:0;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.lb-pts{font-weight:800;width:64px;text-align:right;color:var(--accent2)}
+.lb-detail{display:none;background:#f6faf7;border-radius:0 0 12px 12px;margin:-8px 0 8px;padding:12px 18px;font-size:.85rem}
+.lb-detail.open{display:block}
+.lb-detail .li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #dde7de}
+.lb-detail .li:last-child{border:none}
+.ok{color:var(--accent2);font-weight:700}.ko{color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:30px;font-size:.95rem}
+.note{background:#fff8e2;border:1px solid #efd98a;border-radius:10px;padding:12px 14px;font-size:.85rem;margin-bottom:16px}
+.statline{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:#fff;border-radius:12px;padding:12px 18px;box-shadow:0 2px 8px rgba(11,61,32,.07);flex:1;min-width:130px;text-align:center}
+.stat .v{font-size:1.4rem;font-weight:800;color:var(--accent2)}
+.stat .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
+/* PASSWORD GATE */
+.lock{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 20% -20%, rgba(245,197,66,.25), transparent 50%),
+  repeating-linear-gradient(90deg, var(--pitch) 0 70px, var(--pitch2) 70px 140px)}
+.lock-card{background:#fff;border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);animation:fade .35s ease}
+.lock-card .big{font-size:2.4rem;margin-bottom:8px}
+.lock-card h3{margin-bottom:4px}
+.lock-card p{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.lock-card input{text-align:center;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="lock" id="gate">
+  <div class="lock-card">
+    <div class="big">⚽🔒</div>
+    <h3>Logifuture World Cup Game</h3>
+    <p>Enter the company password to play.</p>
+    <input type="password" id="gate-pw" placeholder="Password" autocomplete="off">
+    <div class="error" id="gate-err" style="margin:0 0 10px">⚠️ Wrong password</div>
+    <button class="btn" onclick="tryGate()">Enter the stadium</button>
+  </div>
+</div>
+
+<div class="hero">
+  <span class="trophy">🏆</span>
+  <h1>WORLD CUP 2026 — LOGIFUTURE PREDICTION GAME</h1>
+  <div class="sub">USA · Canada · Mexico &nbsp;|&nbsp; June 11 – July 19, 2026 &nbsp;|&nbsp; 48 teams · 104 matches</div>
+  <div id="countdown"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="play">⚽ Make Your Picks</button>
+  <button class="tab-btn" data-tab="board">🏅 Leaderboard</button>
+  <button class="tab-btn" data-tab="rules">📜 Rules</button>
+  <button class="tab-btn" data-tab="admin">🔧 Admin</button>
+</div>
+
+<div class="wrap">
+
+<!-- ============ PLAY ============ -->
+<div class="panel active" id="panel-play">
+  <div class="card">
+    <h2>👤 Who are you?</h2>
+    <div class="hint">Use your real name so colleagues can find you on the leaderboard.</div>
+    <div class="grid2">
+      <div><label>Name</label><input id="f-name" placeholder="e.g. Vinz Rocco" maxlength="40"></div>
+      <div><label>Team / Department (optional)</label><input id="f-dept" placeholder="e.g. Finance" maxlength="30"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 The Podium <span class="badge">BASE 100 PTS · UP TO ×3</span></h2>
+    <div class="hint">Pick the champion, runner-up and third place. <b>Underdog bonus:</b> every team carries its own multiplier derived from real bookmaker odds at kickoff — from ×1.0 (Spain, the favorite) up to ×7.3 (Curaçao or Haiti, 2500-1). A correct Spain champion pick pays 50 pts; a correct Curaçao pick pays 365. A podium team in the wrong spot still earns 10 pts × its multiplier.</div>
+    <div class="podium-row">
+      <div class="podium-slot s1"><span class="medal">🥇</span><div class="pts">Champion · 50 pts × team multiplier</div><label>Winner</label><select id="f-p1"></select></div>
+      <div class="podium-slot s2"><span class="medal">🥈</span><div class="pts">Runner-up · 30 pts × team multiplier</div><label>Finalist</label><select id="f-p2"></select></div>
+      <div class="podium-slot s3"><span class="medal">🥉</span><div class="pts">Third place · 20 pts × team multiplier</div><label>Third</label><select id="f-p3"></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🥅 Total Tournament Goals <span class="badge">UP TO 40 PTS</span></h2>
+    <div class="hint">All 104 matches, including extra time (penalty shootouts don't count). 2022 had 172 goals in 64 matches — this edition has 40 more games. Exact = 40 pts · ±5 = 25 · ±15 = 15 · ±30 = 5.</div>
+    <input type="number" id="f-goals" min="0" max="999" placeholder="e.g. 260" style="max-width:220px">
+  </div>
+
+  <div class="card">
+    <h2>👟 Golden Boot <span class="badge">35 PTS</span></h2>
+    <div class="hint">Who finishes as the tournament's top scorer?</div>
+    <input id="f-boot" list="boot-list" placeholder="Type a player name…" maxlength="40" style="max-width:320px">
+    <datalist id="boot-list">
+      <option>Kylian Mbappé</option><option>Erling Haaland</option><option>Harry Kane</option>
+      <option>Lionel Messi</option><option>Cristiano Ronaldo</option><option>Vinícius Júnior</option>
+      <option>Jude Bellingham</option><option>Lautaro Martínez</option><option>Julián Álvarez</option>
+      <option>Robert Lewandowski</option><option>Viktor Gyökeres</option><option>Lamine Yamal</option>
+      <option>Florian Wirtz</option><option>Jamal Musiala</option><option>Memphis Depay</option>
+      <option>Christian Pulisic</option><option>Santiago Giménez</option><option>Victor Boniface</option>
+      <option>Marcus Rashford</option><option>Rafael Leão</option><option>Achraf Hakimi</option>
+      <option>Cody Gakpo</option><option>Bukayo Saka</option><option>Ousmane Dembélé</option>
+    </datalist>
+  </div>
+
+  <div class="card">
+    <h2>🎲 Bonus Calls <span class="badge">15 PTS EACH</span></h2>
+    <div class="hint">Three brave yes/no calls — 45 pts up for grabs.</div>
+    <div class="grid3">
+      <div><label>🏟️ A host nation (USA / Mexico / Canada) reaches the semi-finals?</label>
+        <div class="seg"><label style="flex:1"><input type="radio" name="e1" value="Y"><span>Yes</span></label>
+        <label style="flex:1"><input type="radio" name="e1" value="N"><span>No</span></label></div></div>
+      <div><label>🧤 The final is decided by a penalty shootout?</label>
+        <div class="seg"><label style="flex:1"><input type="radio" name="e2" value="Y"><span>Yes</span></label>
+        <label style="flex:1"><input type="radio" name="e2" value="N"><span>No</span></label></div></div>
+      <div><label>⚡ Someone scores a hat-trick during the tournament?</label>
+        <div class="seg"><label style="flex:1"><input type="radio" name="e3" value="Y"><span>Yes</span></label>
+        <label style="flex:1"><input type="radio" name="e3" value="N"><span>No</span></label></div></div>
+    </div>
+  </div>
+
+  <div style="text-align:center">
+    <button class="btn" onclick="makeCode()">🎟️ Generate My Prediction Code</button>
+    <div class="error" id="f-error"></div>
+    <div id="code-out" style="display:none">
+      <div class="codebox" id="code-text"></div>
+      <p style="margin:12px 0;color:var(--muted);font-size:.88rem">
+        📤 <b>Copy this code and send it to the organizer</b> (Slack / Teams / email) before kickoff.<br>One entry per person — your latest code counts.</p>
+      <button class="btn ghost small" onclick="copyCode()">📋 Copy code</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LEADERBOARD ============ -->
+<div class="panel" id="panel-board">
+  <div class="statline" id="lb-stats"></div>
+  <div id="lb-podium" class="lb-podium"></div>
+  <div id="lb-list"></div>
+</div>
+
+<!-- ============ RULES ============ -->
+<div class="panel" id="panel-rules">
+  <div class="card">
+    <h2>📜 How scoring works</h2>
+    <div class="hint">Podium points are multiplied by team strength, so betting on underdogs can pay big.</div>
+    <div class="lb-detail open" style="margin:0;border-radius:12px">
+      <div class="li"><span>🥇 Champion exactly right</span><b>50 pts × multiplier</b></div>
+      <div class="li"><span>🥈 Runner-up exactly right</span><b>30 pts × multiplier</b></div>
+      <div class="li"><span>🥉 Third place exactly right</span><b>20 pts × multiplier</b></div>
+      <div class="li"><span>🔄 Podium team picked, but in the wrong spot</span><b>10 pts × multiplier</b></div>
+      <div class="li"><span>💪 Multiplier = 1 + ln(team's title odds ÷ favorite's odds), per BetMGM at kickoff. Shown next to each team in the dropdown.</span><b>×1.0 (Spain) … ×7.3 (Curaçao, Haiti)</b></div>
+      <div class="li"><span>📈 Survival — each podium pick earns points for every round it reaches: R32 / R16 / QF / SF</span><b>3 / 6 / 10 / 15 pts</b></div>
+      <div class="li"><span>🥅 Total goals — exact</span><b>40 pts</b></div>
+      <div class="li"><span>🥅 Total goals — within ±5 / ±15 / ±30</span><b>25 / 15 / 5 pts</b></div>
+      <div class="li"><span>👟 Golden Boot correct</span><b>35 pts</b></div>
+      <div class="li"><span>🎲 Each correct bonus call</span><b>15 pts</b></div>
+    </div>
+    <p style="margin-top:14px;font-size:.88rem;color:var(--muted)">
+      <b>Tie-breakers:</b> 1) closest total-goals guess, 2) earliest submission.<br>
+      <b>Deadline:</b> entries close at kickoff of the opening match (June 11, 2026).<br>
+      <b>One entry per person</b> — if you submit twice, only your most recent code is kept.</p>
+  </div>
+</div>
+
+<!-- ============ ADMIN ============ -->
+<div class="panel" id="panel-admin">
+  <div class="card" id="adm-lock" style="text-align:center;max-width:380px;margin:0 auto">
+    <div style="font-size:2rem;margin-bottom:6px">🔐</div>
+    <h2 style="justify-content:center">Organizer access</h2>
+    <div class="hint">This area is for the game admin only.</div>
+    <input type="password" id="adm-pw" placeholder="Admin password" autocomplete="off" style="text-align:center;margin-bottom:12px">
+    <div class="error" id="adm-err" style="margin:0 0 10px">⚠️ Wrong password</div>
+    <button class="btn small" onclick="tryAdmin()">Unlock</button>
+  </div>
+  <div id="adm-content" style="display:none">
+  <div class="note">🔒 <b>Organizer area.</b> Changes are kept in this browser automatically. To publish the leaderboard to everyone, click <b>Download updated page</b> and share the new file (it replaces this one).</div>
+
+  <div class="card">
+    <h2>📥 Import prediction codes</h2>
+    <div class="hint">Paste one or more codes (any separator). Re-submitting a name replaces the previous entry.</div>
+    <textarea id="adm-codes" placeholder="WC26-eyJ..."></textarea>
+    <div style="margin-top:10px"><button class="btn small" onclick="importCodes()">Import</button>
+    <span id="adm-import-msg" style="font-size:.85rem;margin-left:10px"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>📝 Enter actual results</h2>
+    <div class="hint">Fill in what's known — leave the rest blank. The leaderboard scores only completed items.</div>
+    <div class="grid3">
+      <div><label>🥇 Champion</label><select id="r-p1"></select></div>
+      <div><label>🥈 Runner-up</label><select id="r-p2"></select></div>
+      <div><label>🥉 Third place</label><select id="r-p3"></select></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label>🥅 Total goals (final)</label><input type="number" id="r-goals" min="0" placeholder="leave blank until known"></div>
+      <div><label>👟 Golden Boot winner</label><input id="r-boot" list="boot-list" placeholder="player name"></div>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div><label>🏟️ Host in semi-final?</label><select id="r-e1"><option value="">— not decided —</option><option value="Y">Yes</option><option value="N">No</option></select></div>
+      <div><label>🧤 Final on penalties?</label><select id="r-e2"><option value="">— not decided —</option><option value="Y">Yes</option><option value="N">No</option></select></div>
+      <div><label>⚡ Hat-trick scored?</label><select id="r-e3"><option value="">— not decided —</option><option value="Y">Yes</option><option value="N">No</option></select></div>
+    </div>
+    <div style="margin-top:18px">
+      <label>📈 Team progress (survival points — update after each round)</label>
+      <div class="hint" style="margin-bottom:8px">Only teams that someone picked are listed. Set the furthest stage each has reached.</div>
+      <div id="r-prog" class="grid3"></div>
+    </div>
+    <div style="margin-top:16px"><button class="btn small" onclick="saveResults()">💾 Save results</button>
+    <span id="adm-res-msg" style="font-size:.85rem;margin-left:10px"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>👥 Entries (<span id="adm-count">0</span>)</h2>
+    <div id="adm-entries" style="font-size:.85rem"></div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <button class="btn" onclick="exportPage()">⬇️ Download updated page</button>
+    <div class="hint" style="margin-top:10px">Creates a copy of this page with all entries & results baked in — replace <b>index.html</b> in your GitHub repo with it so everyone sees the live leaderboard.</div>
+  </div>
+  </div><!-- /adm-content -->
+</div>
+
+</div>
+<footer>⚽ World Cup 2026 Logifuture Prediction Game · Good luck! 🍀</footer>
+
+<script id="GAME_DATA" type="application/json">{"entries":[],"results":{}}</script>
+
+<script>
+/* ================= DATA ================= */
+/* Per-team multiplier from BetMGM title odds (June 9, 2026): m = 1 + ln(odds/4.5), rounded to 0.1.
+   Log scale keeps it granular without letting a 2500-1 pick break the game. 5th field = odds label. */
+const TEAMS = [
+["ALG","Algeria","🇩🇿",5.0,"250-1"],["ARG","Argentina","🇦🇷",1.7,"+900"],["AUS","Australia","🇦🇺",5.7,"500-1"],["AUT","Austria","🇦🇹",4.5,"150-1"],
+["BEL","Belgium","🇧🇪",3.0,"33-1"],["BIH","Bosnia & Herzegovina","🇧🇦",5.0,"250-1"],["BRA","Brazil","🇧🇷",1.7,"+900"],["CAN","Canada","🇨🇦",4.5,"150-1"],
+["CPV","Cabo Verde","🇨🇻",6.4,"1000-1"],["COL","Colombia","🇨🇴",3.2,"40-1"],["COD","DR Congo","🇨🇩",6.1,"750-1"],["CIV","Côte d'Ivoire","🇨🇮",4.8,"200-1"],
+["CRO","Croatia","🇭🇷",3.9,"80-1"],["CUW","Curaçao","🇨🇼",7.3,"2500-1"],["CZE","Czechia","🇨🇿",5.0,"250-1"],["ECU","Ecuador","🇪🇨",3.9,"80-1"],
+["EGY","Egypt","🇪🇬",5.0,"250-1"],["ENG","England","🏴󠁧󠁢󠁥󠁮󠁧󠁿",1.4,"+700"],["FRA","France","🇫🇷",1.1,"+500"],["GER","Germany","🇩🇪",2.1,"14-1"],
+["GHA","Ghana","🇬🇭",5.7,"500-1"],["HAI","Haiti","🇭🇹",7.3,"2500-1"],["IRN","Iran","🇮🇷",5.7,"500-1"],["IRQ","Iraq","🇮🇶",6.4,"1000-1"],
+["JPN","Japan","🇯🇵",3.4,"50-1"],["JOR","Jordan","🇯🇴",6.4,"1000-1"],["KOR","South Korea","🇰🇷",5.0,"250-1"],["MEX","Mexico","🇲🇽",3.7,"66-1"],
+["MAR","Morocco","🇲🇦",3.2,"40-1"],["NED","Netherlands","🇳🇱",2.5,"20-1"],["NZL","New Zealand","🇳🇿",6.4,"1000-1"],["NOR","Norway","🇳🇴",3.0,"33-1"],
+["PAN","Panama","🇵🇦",6.4,"1000-1"],["PAR","Paraguay","🇵🇾",5.0,"250-1"],["POR","Portugal","🇵🇹",1.6,"+800"],["QAT","Qatar","🇶🇦",6.4,"1000-1"],
+["KSA","Saudi Arabia","🇸🇦",6.4,"1000-1"],["SCO","Scotland","🏴󠁧󠁢󠁳󠁣󠁴󠁿",5.0,"250-1"],["SEN","Senegal","🇸🇳",3.7,"66-1"],["RSA","South Africa","🇿🇦",6.4,"1000-1"],
+["ESP","Spain","🇪🇸",1.0,"+450"],["SWE","Sweden","🇸🇪",4.1,"100-1"],["SUI","Switzerland","🇨🇭",3.7,"66-1"],["TUN","Tunisia","🇹🇳",5.7,"500-1"],
+["TUR","Türkiye","🇹🇷",3.7,"66-1"],["USA","United States","🇺🇸",3.4,"50-1"],["URU","Uruguay","🇺🇾",3.7,"66-1"],["UZB","Uzbekistan","🇺🇿",6.4,"1000-1"]
+];
+const TEAM = Object.fromEntries(TEAMS.map(t=>[t[0],t]));
+/* survival points: furthest stage reached by each podium pick */
+const STAGES = [["","— not decided —",null],["OUT","Out in group stage",0],["R32","Reached Round of 32",3],
+  ["R16","Reached Round of 16",6],["QF","Reached Quarter-finals",10],["SF","Reached Semi-finals",15]];
+const STAGEPTS = Object.fromEntries(STAGES.map(s=>[s[0],s[2]]));
+const STAGENAME = Object.fromEntries(STAGES.map(s=>[s[0],s[1]]));
+function mult(code){ return TEAM[code] ? TEAM[code][3] : 1; }
+const KICKOFF = new Date("2026-06-11T19:00:00-06:00"); // opening match, Mexico City
+/* SHA-256 hashes of the access passwords (change: see README note in repo) */
+const HASH_PLAYER = "ee1a51e643615c2bdce561eb06974ff28aaf8eac1f82e6260636b296d2ebf579";
+const HASH_ADMIN  = "7cdc5992e3147657e21fdc342b4cf5154539bc53e096b12ec887a74091fa08e8";
+async function sha256(s){
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function tryGate(){
+  if(await sha256(document.getElementById("gate-pw").value) === HASH_PLAYER){
+    sessionStorage.setItem("wc26gate","1");
+    document.getElementById("gate").style.display = "none";
+  } else document.getElementById("gate-err").style.display = "block";
+}
+async function tryAdmin(){
+  if(await sha256(document.getElementById("adm-pw").value) === HASH_ADMIN){
+    sessionStorage.setItem("wc26adm","1");
+    showAdmin();
+  } else document.getElementById("adm-err").style.display = "block";
+}
+function adminUnlocked(){ return sessionStorage.getItem("wc26adm")==="1"; }
+function showAdmin(){
+  document.getElementById("adm-lock").style.display = "none";
+  document.getElementById("adm-content").style.display = "block";
+  renderAdmin();
+}
+if(sessionStorage.getItem("wc26gate")==="1") document.getElementById("gate").style.display = "none";
+document.getElementById("gate-pw").addEventListener("keydown", e=>{ if(e.key==="Enter") tryGate(); });
+document.getElementById("adm-pw").addEventListener("keydown", e=>{ if(e.key==="Enter") tryAdmin(); });
+const LSKEY = "wc26game";
+
+let DB = loadData();
+function loadData(){
+  try{ const ls = localStorage.getItem(LSKEY); if(ls) return JSON.parse(ls); }catch(e){}
+  try{ return JSON.parse(document.getElementById("GAME_DATA").textContent); }catch(e){ return {entries:[],results:{}}; }
+}
+// If the embedded file has more entries than this browser's cache, prefer the file.
+(function(){ try{
+  const file = JSON.parse(document.getElementById("GAME_DATA").textContent);
+  if((file.entries||[]).length > (DB.entries||[]).length) DB = file;
+}catch(e){} })();
+function persist(){ try{ localStorage.setItem(LSKEY, JSON.stringify(DB)); }catch(e){} }
+
+/* ================= UI SETUP ================= */
+function fillTeamSelect(sel, blankLabel, showMult){
+  sel.innerHTML = `<option value="">${blankLabel||"— select a team —"}</option>` +
+    TEAMS.map(t=>`<option value="${t[0]}">${t[2]} ${t[1]}${showMult?` — ×${t[3].toFixed(1)} (odds ${t[4]})`:""}</option>`).join("");
+}
+["f-p1","f-p2","f-p3"].forEach(id=>fillTeamSelect(document.getElementById(id),null,true));
+["r-p1","r-p2","r-p3"].forEach(id=>fillTeamSelect(document.getElementById(id),"— not decided —"));
+
+document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  document.getElementById("panel-"+b.dataset.tab).classList.add("active");
+  if(b.dataset.tab==="board") renderBoard();
+  if(b.dataset.tab==="admin"){ if(adminUnlocked()) showAdmin(); }
+}));
+
+/* countdown */
+function tick(){
+  const d = KICKOFF - new Date();
+  const el = document.getElementById("countdown");
+  if(d<=0){ el.innerHTML = `<div class="unit"><div class="num">⚽</div><div class="lab">It's on!</div></div>`; return; }
+  const dd=Math.floor(d/864e5), hh=Math.floor(d%864e5/36e5), mm=Math.floor(d%36e5/6e4), ss=Math.floor(d%6e4/1e3);
+  el.innerHTML = [[dd,"days"],[hh,"hours"],[mm,"min"],[ss,"sec"]]
+    .map(u=>`<div class="unit"><div class="num">${u[0]}</div><div class="lab">${u[1]}</div></div>`).join("");
+}
+tick(); setInterval(tick,1000);
+
+/* ================= ENTRY CODE ================= */
+function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+function radio(name){ const r=document.querySelector(`input[name="${name}"]:checked`); return r?r.value:""; }
+
+function makeCode(){
+  const err = document.getElementById("f-error");
+  const name = document.getElementById("f-name").value.trim();
+  const p1=document.getElementById("f-p1").value, p2=document.getElementById("f-p2").value, p3=document.getElementById("f-p3").value;
+  const goals = document.getElementById("f-goals").value;
+  const boot = document.getElementById("f-boot").value.trim();
+  const e1=radio("e1"), e2=radio("e2"), e3=radio("e3");
+  let msg = "";
+  if(!name) msg="Please enter your name.";
+  else if(!p1||!p2||!p3) msg="Please pick all three podium teams.";
+  else if(new Set([p1,p2,p3]).size<3) msg="Podium teams must be three different teams.";
+  else if(goals===""||+goals<0) msg="Please enter total goals.";
+  else if(!boot) msg="Please pick a Golden Boot player.";
+  else if(!e1||!e2||!e3) msg="Please answer all three bonus calls.";
+  if(msg){ err.textContent="⚠️ "+msg; err.style.display="block"; document.getElementById("code-out").style.display="none"; return; }
+  err.style.display="none";
+  const entry = {n:name, d:document.getElementById("f-dept").value.trim(), p1,p2,p3, g:+goals, b:boot, e1,e2,e3, t:Date.now()};
+  const code = "WC26-"+b64e(JSON.stringify(entry));
+  document.getElementById("code-text").textContent = code;
+  document.getElementById("code-out").style.display = "block";
+  document.getElementById("code-out").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById("code-text").textContent)
+    .then(()=>alert("Code copied! Now send it to the organizer."));
+}
+
+/* ================= ADMIN ================= */
+function importCodes(){
+  const raw = document.getElementById("adm-codes").value;
+  const found = raw.match(/WC26-[A-Za-z0-9+/=]+/g) || [];
+  let ok=0, bad=0;
+  found.forEach(c=>{
+    try{
+      const e = JSON.parse(b64d(c.slice(5)));
+      if(!e.n||!e.p1||!e.p2||!e.p3) throw 0;
+      const i = DB.entries.findIndex(x=>x.n.toLowerCase()===e.n.toLowerCase());
+      if(i>=0) DB.entries[i]=e; else DB.entries.push(e);
+      ok++;
+    }catch(_){ bad++; }
+  });
+  persist();
+  document.getElementById("adm-import-msg").innerHTML =
+    `<span class="ok">✓ ${ok} imported</span>` + (bad?` · <span style="color:var(--red)">${bad} invalid</span>`:"");
+  if(ok) document.getElementById("adm-codes").value="";
+  renderAdmin();
+}
+function pickedTeams(){
+  const set = new Set();
+  DB.entries.forEach(e=>[e.p1,e.p2,e.p3].forEach(t=>t&&set.add(t)));
+  return TEAMS.filter(t=>set.has(t[0])).map(t=>t[0]);
+}
+function saveResults(){
+  const prog = {};
+  pickedTeams().forEach(tc=>{
+    const el = document.getElementById("prog-"+tc);
+    if(el && el.value) prog[tc]=el.value;
+  });
+  DB.results = {
+    p1:document.getElementById("r-p1").value, p2:document.getElementById("r-p2").value, p3:document.getElementById("r-p3").value,
+    g:document.getElementById("r-goals").value===""?null:+document.getElementById("r-goals").value,
+    b:document.getElementById("r-boot").value.trim(),
+    e1:document.getElementById("r-e1").value, e2:document.getElementById("r-e2").value, e3:document.getElementById("r-e3").value,
+    prog
+  };
+  persist();
+  document.getElementById("adm-res-msg").innerHTML = `<span class="ok">✓ Saved — leaderboard updated</span>`;
+}
+function renderAdmin(){
+  const r = DB.results||{};
+  ["p1","p2","p3","e1","e2","e3"].forEach(k=>{ const el=document.getElementById("r-"+k); if(el) el.value=r[k]||""; });
+  document.getElementById("r-goals").value = (r.g==null?"":r.g);
+  document.getElementById("r-boot").value = r.b||"";
+  const prog = r.prog||{};
+  document.getElementById("r-prog").innerHTML = pickedTeams().map(tc=>{
+    const t=TEAM[tc];
+    return `<div><label>${t[2]} ${t[1]}</label><select id="prog-${tc}">${
+      STAGES.map(s=>`<option value="${s[0]}"${(prog[tc]||"")===s[0]?" selected":""}>${s[1]}${s[2]?` (+${s[2]})`:""}</option>`).join("")
+    }</select></div>`;
+  }).join("") || `<div class="empty" style="grid-column:1/-1;padding:10px">Import entries first — picked teams will appear here.</div>`;
+  document.getElementById("adm-count").textContent = DB.entries.length;
+  document.getElementById("adm-entries").innerHTML = DB.entries.length
+    ? DB.entries.map(e=>`<div class="li" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e2e9e3">
+        <span><b>${esc(e.n)}</b>${e.d?` <span class="ko">(${esc(e.d)})</span>`:""}</span>
+        <span class="ko">${TEAM[e.p1]?TEAM[e.p1][2]:""} ${TEAM[e.p1]?TEAM[e.p1][1]:e.p1} · ${e.g} goals · ${esc(e.b)}</span></div>`).join("")
+    : `<div class="empty">No entries yet — paste codes above.</div>`;
+}
+function exportPage(){
+  const dataEl = document.getElementById("GAME_DATA");
+  dataEl.textContent = JSON.stringify(DB);
+  /* serialize in locked state so the published copy asks for passwords again */
+  const gate=document.getElementById("gate"), lock=document.getElementById("adm-lock"), cont=document.getElementById("adm-content");
+  const prev=[gate.style.display, lock.style.display, cont.style.display];
+  gate.style.display=""; lock.style.display=""; cont.style.display="none";
+  document.getElementById("gate-err").style.display=""; document.getElementById("adm-err").style.display="";
+  const html = "<!DOCTYPE html>\n"+document.documentElement.outerHTML;
+  gate.style.display=prev[0]; lock.style.display=prev[1]; cont.style.display=prev[2]; // restore
+  const blob = new Blob([html],{type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+}
+
+/* ================= SCORING ================= */
+function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z ]/g,"").trim(); }
+function scoreEntry(e, r){
+  const items = [];
+  let total = 0;
+  const podium = [r.p1,r.p2,r.p3].filter(Boolean);
+  const slots = [["p1","🥇 Champion",50],["p2","🥈 Runner-up",30],["p3","🥉 Third place",20]];
+  slots.forEach(([k,label,pts])=>{
+    if(!r[k]) { items.push([label, null, "pending"]); return; }
+    const m = mult(e[k]);
+    if(e[k]===r[k]){ const p=Math.round(pts*m); total+=p; items.push([label, p, TEAM[e[k]][1]+` ✓ (×${m})`]); }
+    else if(podium.includes(e[k])){ const p=Math.round(10*m); total+=p; items.push([label, p, TEAM[e[k]][1]+` (on podium, wrong spot, ×${m})`]); }
+    else items.push([label, 0, TEAM[e[k]]?TEAM[e[k]][1]:e[k]]);
+  });
+  if(r.g==null) items.push(["🥅 Total goals", null, "pending ("+e.g+")"]);
+  else{
+    const diff = Math.abs(e.g - r.g);
+    const pts = diff===0?40 : diff<=5?25 : diff<=15?15 : diff<=30?5 : 0;
+    total+=pts; items.push(["🥅 Total goals", pts, `guessed ${e.g}, actual ${r.g} (off by ${diff})`]);
+  }
+  if(!r.b) items.push(["👟 Golden Boot", null, "pending ("+e.b+")"]);
+  else{
+    const hit = norm(e.b)===norm(r.b);
+    if(hit) total+=35;
+    items.push(["👟 Golden Boot", hit?35:0, e.b + (hit?" ✓":"")]);
+  }
+  /* survival points for each podium pick */
+  const prog = r.prog||{};
+  [e.p1,e.p2,e.p3].forEach(tc=>{
+    const tn = TEAM[tc]?TEAM[tc][1]:tc;
+    const st = prog[tc];
+    if(st==null||st===""){ items.push(["📈 Survival: "+tn, null, "in progress…"]); }
+    else{ const p = STAGEPTS[st]||0; total+=p; items.push(["📈 Survival: "+tn, p, STAGENAME[st]||st]); }
+  });
+  [["e1","🏟️ Host in semis"],["e2","🧤 Final on pens"],["e3","⚡ Hat-trick"]].forEach(([k,label])=>{
+    if(!r[k]) { items.push([label, null, "pending ("+(e[k]==="Y"?"Yes":"No")+")"]); return; }
+    const hit = e[k]===r[k];
+    if(hit) total+=15;
+    items.push([label, hit?15:0, (e[k]==="Y"?"Yes":"No") + (hit?" ✓":"")]);
+  });
+  return {total, items};
+}
+
+/* ================= LEADERBOARD ================= */
+function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function renderBoard(){
+  const r = DB.results||{};
+  const list = document.getElementById("lb-list"), pod = document.getElementById("lb-podium"), stats=document.getElementById("lb-stats");
+  if(!DB.entries.length){
+    stats.innerHTML=""; pod.innerHTML="";
+    list.innerHTML = `<div class="card empty">No entries yet.<br>Once the organizer imports prediction codes, the ranking appears here. ⚽</div>`;
+    return;
+  }
+  const scored = DB.entries.map(e=>({e, s:scoreEntry(e,r)}))
+    .sort((a,b)=> b.s.total-a.s.total
+      || (r.g!=null ? Math.abs(a.e.g-r.g)-Math.abs(b.e.g-r.g) : 0)
+      || a.e.t-b.e.t);
+  const anyResult = !!(r.p1||r.p2||r.p3||r.g!=null||r.b||r.e1||r.e2||r.e3||Object.keys(r.prog||{}).length);
+  const favCount = {};
+  DB.entries.forEach(e=>favCount[e.p1]=(favCount[e.p1]||0)+1);
+  const fav = Object.entries(favCount).sort((a,b)=>b[1]-a[1])[0];
+  const avgG = Math.round(DB.entries.reduce((s,e)=>s+e.g,0)/DB.entries.length);
+  stats.innerHTML = `
+    <div class="stat"><div class="v">${DB.entries.length}</div><div class="k">Players</div></div>
+    <div class="stat"><div class="v">${TEAM[fav[0]]?TEAM[fav[0]][2]:""} ${TEAM[fav[0]]?TEAM[fav[0]][1]:fav[0]}</div><div class="k">Crowd favourite (${fav[1]} picks)</div></div>
+    <div class="stat"><div class="v">${avgG}</div><div class="k">Avg goals guessed</div></div>
+    <div class="stat"><div class="v">${anyResult? scored[0].s.total+" pts" : "—"}</div><div class="k">Top score</div></div>`;
+  if(anyResult && scored.length>=3){
+    const [g,s2,b] = scored;
+    pod.innerHTML = `
+      <div class="lb-pod pod-2"><div class="med">🥈</div><div class="nm">${esc(s2.e.n)}</div><div class="pt">${s2.s.total}</div></div>
+      <div class="lb-pod pod-1"><div class="med">🥇</div><div class="nm">${esc(g.e.n)}</div><div class="pt">${g.s.total}</div></div>
+      <div class="lb-pod pod-3"><div class="med">🥉</div><div class="nm">${esc(b.e.n)}</div><div class="pt">${b.s.total}</div></div>`;
+  } else pod.innerHTML = "";
+  const max = Math.max(1, scored[0].s.total);
+  list.innerHTML = (anyResult?"":`<div class="note">⏳ No results entered yet — everyone is at 0. Picks are shown below; scoring starts once the tournament delivers verdicts.</div>`) +
+    scored.map((x,i)=>{
+      const detail = x.s.items.map(([label,pts,info])=>
+        `<div class="li"><span>${label} <span class="ko">— ${esc(String(info))}</span></span>
+         <b class="${pts>0?'ok':'ko'}">${pts==null?"…":"+"+pts}</b></div>`).join("");
+      return `<div class="lb-row" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div class="lb-rank">${i<3&&anyResult?["🥇","🥈","🥉"][i]:i+1}</div>
+        <div class="lb-name">${esc(x.e.n)}${x.e.d?` <span class="ko" style="font-weight:400;font-size:.78rem">· ${esc(x.e.d)}</span>`:""}</div>
+        <div class="lb-bar"><i data-w="${(x.s.total/max*100).toFixed(1)}"></i></div>
+        <div class="lb-pts">${x.s.total}</div>
+      </div>
+      <div class="lb-detail">${detail}</div>`;
+    }).join("");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    list.querySelectorAll(".lb-bar i").forEach(b=>b.style.width=b.dataset.w+"%");
+  }));
+}
+</script>
+</body>
+</html>
