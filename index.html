@@ -154,12 +154,12 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
   </div>
 
   <div class="card">
-    <h2>🏆 The Podium <span class="badge">BASE 100 PTS · MULTIPLIERS UP TO ×7.3</span></h2>
-    <div class="hint">Pick the champion, runner-up and third place. <b>Underdog bonus:</b> every team carries its own multiplier derived from real bookmaker odds at kickoff — from ×1.0 (Spain, the favorite) up to ×7.3 (Curaçao or Haiti, 2500-1). A correct Spain champion pick pays 50 pts; a correct Curaçao pick pays 365. A podium team in the wrong spot still earns 10 pts × its multiplier.</div>
+    <h2>🏆 Pick Your 3 Teams <span class="badge">MULTIPLIERS UP TO ×7.3</span></h2>
+    <div class="hint">Choose any <b>3 teams</b> — no need to guess the order. Each of your teams scores if it finishes in the real top 3: <b>1st = 50 pts, 2nd = 30, 3rd = 20</b>, multiplied by that team's strength multiplier. <b>Underdog bonus:</b> every team carries a multiplier from real bookmaker odds at kickoff — from ×1.0 (Spain, the favorite) up to ×7.3 (Curaçao / Haiti). So a favorite winning pays 50; a ×3 dark horse finishing 2nd pays 90; a ×7.3 longshot champion pays 365. Pick bold, your teams can land in any position.</div>
     <div class="podium-row">
-      <div class="podium-slot s1"><span class="medal">🥇</span><div class="pts">Champion · 50 pts × team multiplier</div><label>Winner</label><select id="f-p1"></select></div>
-      <div class="podium-slot s2"><span class="medal">🥈</span><div class="pts">Runner-up · 30 pts × team multiplier</div><label>Finalist</label><select id="f-p2"></select></div>
-      <div class="podium-slot s3"><span class="medal">🥉</span><div class="pts">Third place · 20 pts × team multiplier</div><label>Third</label><select id="f-p3"></select></div>
+      <div class="podium-slot s1"><span class="medal">⚽</span><div class="pts">Team 1</div><label>Pick</label><select id="f-p1"></select></div>
+      <div class="podium-slot s2"><span class="medal">⚽</span><div class="pts">Team 2</div><label>Pick</label><select id="f-p2"></select></div>
+      <div class="podium-slot s3"><span class="medal">⚽</span><div class="pts">Team 3</div><label>Pick</label><select id="f-p3"></select></div>
     </div>
   </div>
 
@@ -221,14 +221,14 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
 <div class="panel" id="panel-rules">
   <div class="card">
     <h2>📜 How scoring works</h2>
-    <div class="hint">Podium points are multiplied by team strength, so betting on underdogs can pay big.</div>
+    <div class="hint">You pick any 3 teams (order doesn't matter). Each scores by where it actually finishes, times its strength multiplier — so betting on underdogs can pay big.</div>
     <div class="lb-detail open" style="margin:0;border-radius:12px">
-      <div class="li"><span>🥇 Champion exactly right</span><b>50 pts × multiplier</b></div>
-      <div class="li"><span>🥈 Runner-up exactly right</span><b>30 pts × multiplier</b></div>
-      <div class="li"><span>🥉 Third place exactly right</span><b>20 pts × multiplier</b></div>
-      <div class="li"><span>🔄 Podium team picked, but in the wrong spot</span><b>10 pts × multiplier</b></div>
-      <div class="li"><span>💪 Multiplier = 1 + ln(team's title odds ÷ favorite's odds), per BetMGM at kickoff. Shown next to each team in the dropdown.</span><b>×1.0 (Spain) … ×7.3 (Curaçao, Haiti)</b></div>
-      <div class="li"><span>📈 Survival — each podium pick earns points for every round it reaches: R32 / R16 / QF / SF</span><b>3 / 6 / 10 / 15 pts</b></div>
+      <div class="li"><span>⚽ One of your teams finishes 1st</span><b>50 pts × multiplier</b></div>
+      <div class="li"><span>⚽ One of your teams finishes 2nd</span><b>30 pts × multiplier</b></div>
+      <div class="li"><span>⚽ One of your teams finishes 3rd</span><b>20 pts × multiplier</b></div>
+      <div class="li"><span>⚽ A chosen team that misses the top 3</span><b>0 pts</b></div>
+      <div class="li"><span>💪 Multiplier = 1 + ln(team's decimal odds ÷ favorite's odds), per BetMGM at kickoff. Shown next to each team in the dropdown.</span><b>×1.0 (Spain) … ×7.3 (Curaçao, Haiti)</b></div>
+      <div class="li"><span>📈 Survival — each of your teams earns points for every round it reaches: R32 / R16 / QF / SF</span><b>3 / 6 / 10 / 15 pts</b></div>
       <div class="li"><span>🥅 Total goals — exact</span><b>40 pts</b></div>
       <div class="li"><span>🥅 Total goals — within ±5 / ±15 / ±30</span><b>25 / 15 / 5 pts</b></div>
       <div class="li"><span>👟 Golden Boot correct</span><b>35 pts</b></div>
@@ -293,21 +293,21 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
 
 <script>
 /* ================= DATA ================= */
-/* Per-team multiplier from BetMGM title odds (June 9, 2026): m = 1 + ln(odds/4.5), rounded to 0.1.
-   Log scale keeps it granular without letting a 2500-1 pick break the game. 5th field = odds label. */
+/* Per-team multiplier from BetMGM title odds (June 9, 2026): m = 1 + ln(dec_odds/5.5), rounded to 0.1.
+   Log scale keeps it granular without letting a longshot pick break the game. 5th field = decimal odds. */
 const TEAMS = [
-["ALG","Algeria","🇩🇿",5.0,"250-1"],["ARG","Argentina","🇦🇷",1.7,"+900"],["AUS","Australia","🇦🇺",5.7,"500-1"],["AUT","Austria","🇦🇹",4.5,"150-1"],
-["BEL","Belgium","🇧🇪",3.0,"33-1"],["BIH","Bosnia & Herzegovina","🇧🇦",5.0,"250-1"],["BRA","Brazil","🇧🇷",1.7,"+900"],["CAN","Canada","🇨🇦",4.5,"150-1"],
-["CPV","Cabo Verde","🇨🇻",6.4,"1000-1"],["COL","Colombia","🇨🇴",3.2,"40-1"],["COD","DR Congo","🇨🇩",6.1,"750-1"],["CIV","Côte d'Ivoire","🇨🇮",4.8,"200-1"],
-["CRO","Croatia","🇭🇷",3.9,"80-1"],["CUW","Curaçao","🇨🇼",7.3,"2500-1"],["CZE","Czechia","🇨🇿",5.0,"250-1"],["ECU","Ecuador","🇪🇨",3.9,"80-1"],
-["EGY","Egypt","🇪🇬",5.0,"250-1"],["ENG","England","🏴󠁧󠁢󠁥󠁮󠁧󠁿",1.4,"+700"],["FRA","France","🇫🇷",1.1,"+500"],["GER","Germany","🇩🇪",2.1,"14-1"],
-["GHA","Ghana","🇬🇭",5.7,"500-1"],["HAI","Haiti","🇭🇹",7.3,"2500-1"],["IRN","Iran","🇮🇷",5.7,"500-1"],["IRQ","Iraq","🇮🇶",6.4,"1000-1"],
-["JPN","Japan","🇯🇵",3.4,"50-1"],["JOR","Jordan","🇯🇴",6.4,"1000-1"],["KOR","South Korea","🇰🇷",5.0,"250-1"],["MEX","Mexico","🇲🇽",3.7,"66-1"],
-["MAR","Morocco","🇲🇦",3.2,"40-1"],["NED","Netherlands","🇳🇱",2.5,"20-1"],["NZL","New Zealand","🇳🇿",6.4,"1000-1"],["NOR","Norway","🇳🇴",3.0,"33-1"],
-["PAN","Panama","🇵🇦",6.4,"1000-1"],["PAR","Paraguay","🇵🇾",5.0,"250-1"],["POR","Portugal","🇵🇹",1.6,"+800"],["QAT","Qatar","🇶🇦",6.4,"1000-1"],
-["KSA","Saudi Arabia","🇸🇦",6.4,"1000-1"],["SCO","Scotland","🏴󠁧󠁢󠁳󠁣󠁴󠁿",5.0,"250-1"],["SEN","Senegal","🇸🇳",3.7,"66-1"],["RSA","South Africa","🇿🇦",6.4,"1000-1"],
-["ESP","Spain","🇪🇸",1.0,"+450"],["SWE","Sweden","🇸🇪",4.1,"100-1"],["SUI","Switzerland","🇨🇭",3.7,"66-1"],["TUN","Tunisia","🇹🇳",5.7,"500-1"],
-["TUR","Türkiye","🇹🇷",3.7,"66-1"],["USA","United States","🇺🇸",3.4,"50-1"],["URU","Uruguay","🇺🇾",3.7,"66-1"],["UZB","Uzbekistan","🇺🇿",6.4,"1000-1"]
+["ALG","Algeria","🇩🇿",5.0,"251.0"],["ARG","Argentina","🇦🇷",1.7,"10.0"],["AUS","Australia","🇦🇺",5.7,"501.0"],["AUT","Austria","🇦🇹",4.5,"151.0"],
+["BEL","Belgium","🇧🇪",3.0,"34.0"],["BIH","Bosnia & Herzegovina","🇧🇦",5.0,"251.0"],["BRA","Brazil","🇧🇷",1.7,"10.0"],["CAN","Canada","🇨🇦",4.5,"151.0"],
+["CPV","Cabo Verde","🇨🇻",6.4,"1001.0"],["COL","Colombia","🇨🇴",3.2,"41.0"],["COD","DR Congo","🇨🇩",6.1,"751.0"],["CIV","Côte d'Ivoire","🇨🇮",4.8,"201.0"],
+["CRO","Croatia","🇭🇷",3.9,"81.0"],["CUW","Curaçao","🇨🇼",7.3,"2501.0"],["CZE","Czechia","🇨🇿",5.0,"251.0"],["ECU","Ecuador","🇪🇨",3.9,"81.0"],
+["EGY","Egypt","🇪🇬",5.0,"251.0"],["ENG","England","🏴󠁧󠁢󠁥󠁮󠁧󠁿",1.4,"8.0"],["FRA","France","🇫🇷",1.1,"6.0"],["GER","Germany","🇩🇪",2.1,"15.0"],
+["GHA","Ghana","🇬🇭",5.7,"501.0"],["HAI","Haiti","🇭🇹",7.3,"2501.0"],["IRN","Iran","🇮🇷",5.7,"501.0"],["IRQ","Iraq","🇮🇶",6.4,"1001.0"],
+["JPN","Japan","🇯🇵",3.4,"51.0"],["JOR","Jordan","🇯🇴",6.4,"1001.0"],["KOR","South Korea","🇰🇷",5.0,"251.0"],["MEX","Mexico","🇲🇽",3.7,"67.0"],
+["MAR","Morocco","🇲🇦",3.2,"41.0"],["NED","Netherlands","🇳🇱",2.5,"21.0"],["NZL","New Zealand","🇳🇿",6.4,"1001.0"],["NOR","Norway","🇳🇴",3.0,"34.0"],
+["PAN","Panama","🇵🇦",6.4,"1001.0"],["PAR","Paraguay","🇵🇾",5.0,"251.0"],["POR","Portugal","🇵🇹",1.6,"9.0"],["QAT","Qatar","🇶🇦",6.4,"1001.0"],
+["KSA","Saudi Arabia","🇸🇦",6.4,"1001.0"],["SCO","Scotland","🏴󠁧󠁢󠁳󠁣󠁴󠁿",5.0,"251.0"],["SEN","Senegal","🇸🇳",3.7,"67.0"],["RSA","South Africa","🇿🇦",6.4,"1001.0"],
+["ESP","Spain","🇪🇸",1.0,"5.5"],["SWE","Sweden","🇸🇪",4.1,"101.0"],["SUI","Switzerland","🇨🇭",3.7,"67.0"],["TUN","Tunisia","🇹🇳",5.7,"501.0"],
+["TUR","Türkiye","🇹🇷",3.7,"67.0"],["USA","United States","🇺🇸",3.4,"51.0"],["URU","Uruguay","🇺🇾",3.7,"67.0"],["UZB","Uzbekistan","🇺🇿",6.4,"1001.0"]
 ];
 const TEAM = Object.fromEntries(TEAMS.map(t=>[t[0],t]));
 /* survival points: furthest stage reached by each podium pick */
@@ -405,8 +405,8 @@ async function submitEntry(){
   let msg = "";
   if(new Date() > KICKOFF) msg="Entries are closed — the tournament has kicked off!";
   else if(!name) msg="Please enter your name.";
-  else if(!p1||!p2||!p3) msg="Please pick all three podium teams.";
-  else if(new Set([p1,p2,p3]).size<3) msg="Podium teams must be three different teams.";
+  else if(!p1||!p2||!p3) msg="Please pick all three teams.";
+  else if(new Set([p1,p2,p3]).size<3) msg="Please choose three different teams.";
   else if(goals===""||+goals<0) msg="Please enter total goals.";
   else if(!boot) msg="Please pick a Golden Boot player.";
   else if(!e1||!e2||!e3) msg="Please answer all three bonus calls.";
@@ -474,22 +474,28 @@ function renderAdmin(){
   document.getElementById("adm-entries").innerHTML = DB.entries.length
     ? DB.entries.map(e=>`<div class="li" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e2e9e3">
         <span><b>${esc(e.n)}</b>${e.d?` <span class="ko">(${esc(e.d)})</span>`:""}</span>
-        <span class="ko">${TEAM[e.p1]?TEAM[e.p1][2]:""} ${TEAM[e.p1]?TEAM[e.p1][1]:e.p1} · ${e.g} goals · ${esc(e.b)}</span></div>`).join("")
-    : `<div class="empty">No entries yet — paste codes above.</div>`;
+        <span class="ko">${[e.p1,e.p2,e.p3].map(t=>TEAM[t]?TEAM[t][2]:"").join("")} · ${e.g} goals · ${esc(e.b)}</span></div>`).join("")
+    : `<div class="empty">No entries yet — they appear automatically as people submit.</div>`;
 }
 /* ================= SCORING ================= */
 function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z ]/g,"").trim(); }
 function scoreEntry(e, r){
   const items = [];
   let total = 0;
-  const podium = [r.p1,r.p2,r.p3].filter(Boolean);
-  const slots = [["p1","🥇 Champion",50],["p2","🥈 Runner-up",30],["p3","🥉 Third place",20]];
-  slots.forEach(([k,label,pts])=>{
-    if(!r[k]) { items.push([label, null, "pending"]); return; }
-    const m = mult(e[k]);
-    if(e[k]===r[k]){ const p=Math.round(pts*m); total+=p; items.push([label, p, TEAM[e[k]][1]+` ✓ (×${m})`]); }
-    else if(podium.includes(e[k])){ const p=Math.round(10*m); total+=p; items.push([label, p, TEAM[e[k]][1]+` (on podium, wrong spot, ×${m})`]); }
-    else items.push([label, 0, TEAM[e[k]]?TEAM[e[k]][1]:e[k]]);
+  /* unordered 3-team podium: each chosen team scores position points × its multiplier
+     if it lands in the actual top 3, regardless of which slot the player put it in */
+  const POSPTS = {1:50, 2:30, 3:20};
+  const POSLABEL = {1:"🥇 1st place", 2:"🥈 2nd place", 3:"🥉 3rd place"};
+  const place = {};
+  if(r.p1) place[r.p1]=1; if(r.p2) place[r.p2]=2; if(r.p3) place[r.p3]=3;
+  const filledCount = [r.p1,r.p2,r.p3].filter(Boolean).length;
+  [e.p1,e.p2,e.p3].forEach(tc=>{
+    const tn = TEAM[tc]?TEAM[tc][1]:tc;
+    const m = mult(tc);
+    const pl = place[tc];
+    if(pl){ const p=Math.round(POSPTS[pl]*m); total+=p; items.push(["⚽ "+tn, p, `${POSLABEL[pl]} · ×${m}`]); }
+    else if(filledCount===3){ items.push(["⚽ "+tn, 0, "did not finish top 3"]); }
+    else { items.push(["⚽ "+tn, null, `pending · ×${m}`]); }
   });
   if(r.g==null) items.push(["🥅 Total goals", null, "pending ("+e.g+")"]);
   else{
@@ -527,7 +533,7 @@ function renderBoard(){
   const list = document.getElementById("lb-list"), pod = document.getElementById("lb-podium"), stats=document.getElementById("lb-stats");
   if(!DB.entries.length){
     stats.innerHTML=""; pod.innerHTML="";
-    list.innerHTML = `<div class="card empty">No entries yet.<br>Once the organizer imports prediction codes, the ranking appears here. ⚽</div>`;
+    list.innerHTML = `<div class="card empty">No entries yet.<br>Be the first to submit your picks — the ranking appears here. ⚽</div>`;
     return;
   }
   const scored = DB.entries.map(e=>({e, s:scoreEntry(e,r)}))
@@ -536,7 +542,7 @@ function renderBoard(){
       || a.e.t-b.e.t);
   const anyResult = !!(r.p1||r.p2||r.p3||r.g!=null||r.b||r.e1||r.e2||r.e3||Object.keys(r.prog||{}).length);
   const favCount = {};
-  DB.entries.forEach(e=>favCount[e.p1]=(favCount[e.p1]||0)+1);
+  DB.entries.forEach(e=>[e.p1,e.p2,e.p3].forEach(t=>{ if(t) favCount[t]=(favCount[t]||0)+1; }));
   const fav = Object.entries(favCount).sort((a,b)=>b[1]-a[1])[0];
   const avgG = Math.round(DB.entries.reduce((s,e)=>s+e.g,0)/DB.entries.length);
   stats.innerHTML = `
