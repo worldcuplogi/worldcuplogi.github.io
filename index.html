@@ -563,9 +563,16 @@ function renderBoard(){
       <div class="lb-pod pod-3"><div class="med">🥉</div><div class="nm">${esc(b.e.n)}</div><div class="pt">${b.s.total}</div></div>`;
   } else pod.innerHTML = "";
   const max = Math.max(1, scored[0].s.total);
-  list.innerHTML = (anyResult?"":`<div class="note">⏳ Entries are open — everyone's at 0 until the tournament starts. Picks stay hidden until kickoff, so nobody can copy each other.</div>`) +
+  /* reveal picks once entries are locked (kickoff passed) OR results have started —
+     before kickoff they stay hidden so nobody can copy an earlier entrant */
+  const entriesClosed = Date.now() >= KICKOFF.getTime();
+  const reveal = anyResult || entriesClosed;
+  let note = "";
+  if(!reveal) note = `<div class="note">⏳ Entries are open — everyone's at 0 until the tournament starts. Picks stay hidden until kickoff, so nobody can copy each other.</div>`;
+  else if(!anyResult) note = `<div class="note">🔓 Entries are closed — here are everyone's picks. Scoring begins as results come in.</div>`;
+  list.innerHTML = note +
     scored.map((x,i)=>{
-      const detail = anyResult
+      const detail = reveal
         ? x.s.items.map(([label,pts,info])=>
             `<div class="li"><span>${label} <span class="ko">— ${esc(String(info))}</span></span>
              <b class="${pts>0?'ok':'ko'}">${pts==null?"…":"+"+pts}</b></div>`).join("")
